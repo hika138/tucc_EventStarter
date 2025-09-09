@@ -23,6 +23,8 @@ class Starter(commands.Cog):
         # tokenやidの取得
         self.guild = self.bot.get_guild(guild_id)
         await self.bot.tree.sync(guild=self.guild)
+        self.nearest_event = await self.get_nearest_event()
+        self.check_event_start.start()
     
     # イベントの変更を検知して一番近いイベントを取得
     async def get_nearest_event(self) -> discord.ScheduledEvent | None:
