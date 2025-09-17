@@ -2,6 +2,7 @@ import discord
 import os
 import sys
 from typing import Literal
+import datetime
 from discord.ext import commands, tasks
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -25,13 +26,18 @@ class Starter(commands.Cog):
         await self.bot.tree.sync(guild=self.guild)
         self.nearest_event = await self.get_nearest_event()
         self.check_event_start.start()
+        
     
     # イベントの変更を検知して一番近いイベントを取得
     async def get_nearest_event(self) -> discord.ScheduledEvent | None:
-        events = await self.guild.fetch_scheduled_events()
+        events: list[discord.ScheduledEvent] = await self.guild.fetch_scheduled_events()
         if not events:
             return None
         events = sorted(events, key=lambda x: x.start_time)
+        # 5分以上前のイベントは除外
+        events = [event for event in events if event.start_time > discord.utils.utcnow() - datetime.timedelta(minutes=5)]
+        if not events:
+            return None
         return events[0]
     
     @commands.Cog.listener()
